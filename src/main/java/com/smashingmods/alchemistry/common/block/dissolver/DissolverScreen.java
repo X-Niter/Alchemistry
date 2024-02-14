@@ -31,14 +31,15 @@ public class DissolverScreen extends AbstractProcessingScreen<DissolverMenu> {
         this.imageHeight = 200;
         displayData.add(new ProgressDisplayData(pMenu.getBlockEntity(), 69, 35, 60, 9, Direction2D.RIGHT));
         displayData.add(new EnergyDisplayData(pMenu.getBlockEntity(), 12, 12, 16, 54));
+
+        // Load GUI texture only once during initialization
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+        RenderSystem.setShaderTexture(0, new ResourceLocation(Alchemistry.MODID, "textures/gui/dissolver_gui.png"));
     }
 
     @Override
     protected void init() {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        RenderSystem.setShaderTexture(0, new ResourceLocation(Alchemistry.MODID, "textures/gui/dissolver_gui.png"));
-
         widgets.add(pauseButton);
         widgets.add(sideConfigButton);
         super.init();
@@ -55,6 +56,7 @@ public class DissolverScreen extends AbstractProcessingScreen<DissolverMenu> {
 
     @Override
     protected void renderBg(PoseStack pPoseStack, float pPartialTick, int pMouseX, int pMouseY) {
+        // Render background without texture binding
         blit(pPoseStack, this.leftPos, this.topPos, 0, 0, imageWidth, imageHeight);
     }
 
