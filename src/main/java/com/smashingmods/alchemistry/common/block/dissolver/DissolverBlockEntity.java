@@ -14,6 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Inventory;
@@ -213,26 +214,29 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
     @Override
     public void load(CompoundTag pTag) {
         super.load(pTag);
-
-        // Load internal buffer
-        ListTag bufferTag = pTag.getList("buffer", 10);
-        bufferTag.stream()
-                .filter(tag -> tag instanceof CompoundTag)
-                .map(CompoundTag.class::cast)
-                .map(ItemStack::of)
-                .forEach(internalBuffer::add);
-
         // Load recipe ID
         this.recipeId = ResourceLocation.tryParse(pTag.getString("recipeId"));
 
+        // Load internal buffer
+        ListTag bufferTag = pTag.getList("buffer", 10);
+        for (Tag tag : bufferTag) {
+            if (tag instanceof CompoundTag compoundTag) {
+                ItemStack itemStack = ItemStack.of(compoundTag);
+                if (!itemStack.isEmpty()) {
+                    internalBuffer.add(itemStack);
+                }
+            }
+        }
+
         // Defer recipe update until after loading all data
         if (level != null && level.isClientSide()) {
-            RecipeRegistry.getDissolverRecipe(recipe -> recipe.getId().equals(recipeId), level).ifPresent(recipe -> {
-                if (!recipe.equals(currentRecipe)) {
+            for (DissolverRecipe recipe : RecipeRegistry.getDissolverRecipes(level)) {
+                if (recipe.getId().equals(recipeId) && !recipe.equals(currentRecipe)) {
                     setRecipe(recipe);
                     Alchemistry.PACKET_HANDLER.sendToServer(new SetRecipePacket(getBlockPos(), recipe.getId(), recipe.getGroup()));
+                    break; // Once the matching recipe is found, no need to iterate further
                 }
-            });
+            }
         }
     }
 
