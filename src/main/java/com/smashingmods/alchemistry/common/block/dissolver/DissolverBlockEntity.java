@@ -98,17 +98,15 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
     }
 
     private void processBuffer() {
+        // Use iterator for efficient removal
         Iterator<ItemStack> iterator = internalBuffer.iterator();
-
         while (iterator.hasNext()) {
             ItemStack bufferStack = iterator.next().copy();
-
             for (int j = 0; j < getOutputHandler().getStacks().size(); j++) {
                 ItemStack slotStack = getOutputHandler().getStackInSlot(j).copy();
-
                 if (slotStack.isEmpty() || (ItemStack.isSameItemSameTags(bufferStack, slotStack) && bufferStack.getCount() + slotStack.getCount() <= slotStack.getMaxStackSize())) {
                     ItemHandlerHelper.insertItemStacked(getOutputHandler(), bufferStack, false);
-                    iterator.remove(); // Efficient removal using iterator
+                    iterator.remove();
                     break;
                 }
             }
@@ -117,7 +115,6 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
         setCanProcess(canProcessRecipe());
         setChanged();
     }
-
 
     @Override
     public <R extends AbstractProcessingRecipe> void setRecipe(@Nullable R pRecipe) {
