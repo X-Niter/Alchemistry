@@ -26,6 +26,7 @@ import net.minecraftforge.items.ItemHandlerHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 
 public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
@@ -97,20 +98,26 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
     }
 
     private void processBuffer() {
-        for (int i = 0; i < internalBuffer.size(); i++) {
-            ItemStack bufferStack = internalBuffer.get(i).copy();
+        Iterator<ItemStack> iterator = internalBuffer.iterator();
+
+        while (iterator.hasNext()) {
+            ItemStack bufferStack = iterator.next().copy();
+
             for (int j = 0; j < getOutputHandler().getStacks().size(); j++) {
                 ItemStack slotStack = getOutputHandler().getStackInSlot(j).copy();
+
                 if (slotStack.isEmpty() || (ItemStack.isSameItemSameTags(bufferStack, slotStack) && bufferStack.getCount() + slotStack.getCount() <= slotStack.getMaxStackSize())) {
                     ItemHandlerHelper.insertItemStacked(getOutputHandler(), bufferStack, false);
-                    internalBuffer.remove(i);
+                    iterator.remove(); // Efficient removal using iterator
                     break;
                 }
             }
         }
+
         setCanProcess(canProcessRecipe());
         setChanged();
     }
+
 
     @Override
     public <R extends AbstractProcessingRecipe> void setRecipe(@Nullable R pRecipe) {
