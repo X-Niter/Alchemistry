@@ -216,7 +216,8 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
     @Override
     public void load(CompoundTag pTag) {
         super.load(pTag);
-        this.recipeId = ResourceLocation.tryParse(pTag.getString("recipeId"));
+
+        // Load internal buffer
         ListTag bufferTag = pTag.getList("buffer", 10);
         bufferTag.stream()
                 .filter(tag -> tag instanceof CompoundTag)
@@ -224,6 +225,10 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
                 .map(ItemStack::of)
                 .forEach(internalBuffer::add);
 
+        // Load recipe ID
+        this.recipeId = ResourceLocation.tryParse(pTag.getString("recipeId"));
+
+        // Defer recipe update until after loading all data
         if (level != null && level.isClientSide()) {
             RecipeRegistry.getDissolverRecipe(recipe -> recipe.getId().equals(recipeId), level).ifPresent(recipe -> {
                 if (!recipe.equals(currentRecipe)) {
@@ -233,6 +238,7 @@ public class DissolverBlockEntity extends AbstractInventoryBlockEntity {
             });
         }
     }
+
 
     @Nullable
     @Override
